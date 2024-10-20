@@ -12,7 +12,7 @@ class RequestLoggingMiddleware(MiddlewareMixin):
         token = request.META.get('HTTP_TOKEN')
         if token:
             session = UserSessions.objects.filter(token=token).first()
-            idle_timeout = 1  #Token is valid only for 10 minutes
+            idle_timeout = 10  #Token is valid only for 10 minutes
             if session:
                 if now > session.created_at + timedelta(minutes=idle_timeout):
                     request.is_token_valid = False
