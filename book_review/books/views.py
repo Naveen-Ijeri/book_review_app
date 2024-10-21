@@ -5,11 +5,27 @@ from rest_framework import status
 from .models import Book
 from constant import SuccessMessage, ErrorMessage
 from authentication import AuthenticateUser
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 class BookView(APIView):
 
     authentication_classes = (AuthenticateUser,)
+
+    @swagger_auto_schema(
+        operation_description="Register Book API",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'title': openapi.Schema(type=openapi.TYPE_STRING, description='Title'),
+                'author': openapi.Schema(type=openapi.TYPE_STRING, description='Author'),
+                'genre': openapi.Schema(type=openapi.TYPE_STRING, description='Genre'),
+                'summary': openapi.Schema(type=openapi.TYPE_STRING, description='Summary')
+            },
+            required=['title', 'author', 'genre', 'summary']
+        )
+    )
 
     def post(self, request, *args, **kwargs):
         try:
@@ -21,9 +37,28 @@ class BookView(APIView):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    
+    
+    @swagger_auto_schema(
+        operation_description="books API endpoint with optional parameters",
+        manual_parameters=[
+            openapi.Parameter(
+                'title',
+                openapi.IN_QUERY,
+                description="Title is an optional parameter.",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+            openapi.Parameter(
+                'author',
+                openapi.IN_QUERY,
+                description="Author is an optional parameter.",
+                type=openapi.TYPE_STRING,
+                required=False
+            )
+        ]
+    )
     def get(self, request, *args, **kwargs):
-
-        authentication_classes = (AuthenticateUser,)
 
         try:
             title = request.GET.get('title', None)

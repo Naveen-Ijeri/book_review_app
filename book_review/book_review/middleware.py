@@ -9,7 +9,7 @@ class RequestLoggingMiddleware(MiddlewareMixin):
     def process_request(self, request):
         now = datetime.now(timezone.utc)
         request.is_token_valid = False
-        token = request.META.get('HTTP_TOKEN')
+        token = request.META.get('HTTP_TOKEN') or request.META.get('HTTP_AUTHORIZATION')
         if token:
             session = UserSessions.objects.filter(token=token).first()
             idle_timeout = 10  #Token is valid only for 10 minutes

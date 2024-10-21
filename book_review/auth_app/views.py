@@ -5,11 +5,25 @@ from .serializers import UserSerializer, LoginSerializer
 from django.http import JsonResponse
 from .models import User, UserSessions
 from utils import encrypt_password
-from rest_framework.response import Response
 from constant import ErrorMessage, SuccessMessage
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 class RegisterView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Register API",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'username': openapi.Schema(type=openapi.TYPE_STRING, description='Username'),
+                'email': openapi.Schema(type=openapi.TYPE_STRING, description='Email'),
+                'password': openapi.Schema(type=openapi.TYPE_STRING, description='Password'),
+            },
+            required=['username', 'email', 'password']
+        )
+    )
     def post(self, request, *args, **kwargs):
         try:
             password = request.data.get('password')
@@ -26,6 +40,18 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Login API",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING, description='Email'),
+                'password': openapi.Schema(type=openapi.TYPE_STRING, description='Password'),
+            },
+            required=['email', 'password']
+        )
+    )
     def post(self, request, *args, **kwargs):
         try:
             login_serializer = LoginSerializer(data=request.data)
@@ -47,12 +73,23 @@ class LoginView(APIView):
 
 
 class LogOutView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Logout API",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'user_id': openapi.Schema(type=openapi.TYPE_STRING, description='UserID')
+            },
+            required=['user_id']
+        )
+    )
     def post(self, request, *args, **kwargs):
         try:
             user_id = request.data.get('user_id')
             if user_id:
                 UserSessions.objects.filter(user_id=user_id).delete()
-                return JsonResponse({"message": SuccessMessage.LOGOUT_SUCCESSFULLY }, status=status.HTTP_200_OK)
+                return JsonResponse({"message": SuccessMessage.LOGOUT_SUCCESSFULLY}, status=status.HTTP_200_OK)
             return JsonResponse({"error": ErrorMessage.USER_ID_FIELD_IS_MANDATORY}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

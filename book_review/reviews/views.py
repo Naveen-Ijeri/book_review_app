@@ -10,14 +10,30 @@ from rest_framework.response import Response
 from django.http import Http404
 from authentication import AuthenticateUser
 from constant import ErrorMessage, SuccessMessage
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
 
 
 class BooksCreateReviews(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Create Review for Book API",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'rating': openapi.Schema(type=openapi.TYPE_INTEGER, description='Rating'),
+                'comment': openapi.Schema(type=openapi.TYPE_STRING, description='Comment')
+            },
+            required=['rating', 'comment']
+        )
+    )
     def post(self, request, *args, **kwargs):
 
         authentication_classes = (AuthenticateUser,)
 
         book_id = kwargs.get('book_id')
+
         try:
             try:
                 book = get_object_or_404(Book, book_id=book_id)
@@ -48,7 +64,7 @@ class BooksCreateReviews(APIView):
             except Http404:
                 return JsonResponse({"error": ErrorMessage.BOOK_DETAILS_NOT_FOUND}, status=status.HTTP_404_NOT_FOUND)
             reviews = Reviews.objects.filter(book=book)
-            serializer = ReviewSerializer(reviews, many=True)
+            serializer = ReviewsSerializer(reviews, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
